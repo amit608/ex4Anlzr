@@ -3,7 +3,6 @@ import { initialize } from '@muzilator/sdk';
 var analysisControl;
 var midi;
 var played = [];
-var pattern = [];
 
 window.addEventListener('load', () => {
   async function init() {
@@ -24,18 +23,16 @@ function onMidiMessage(message) {
   }
 }
 
-function onAnalysisMessage(message) {
-  switch (message.data.type) {
-    case 'set-pattern':
-      console.log("Pattern:", message.data.pattern, "Arrived to Analyzer");
-      pattern = message.data.pattern;
-      break
+// checks if the last two sets of three notes equals
+function checkForMatch() {
+  var match = false;
+  if(played.length > 5) {
+    match = true;
+  for(var i=0; i < 3; i++) {
+    if (played[played.length-1-i] != played[played.length-4-i]) { match = false;}
   }
 }
-
-function checkForMatch() {
-  console.log(played, pattern);
-  if (played.toString().includes(pattern.toString())) {
+  if (match) {
       sendRecognizedToApplication();
       played = [];
   }
@@ -46,7 +43,6 @@ function sendRecognizedToApplication() {
 }
 
 function startListeners() {
-  analysisControl.addEventListener('message', onAnalysisMessage);
   analysisControl.start();
 
   midi.addEventListener('message', onMidiMessage);
